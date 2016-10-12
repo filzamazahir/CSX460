@@ -1,7 +1,7 @@
 ---
 title: "Assignment NYC Flight Data"
 author: "Filza Mazahir"
-date: "October 5, 2016"
+date: "October 11, 2016"
 output: html_document
 ---
 
@@ -75,12 +75,15 @@ print(occurences)
 
 ```{r}
 library(dplyr)
-airports <- read_csv("data/flights.csv")
+airports <- read_csv("data/airports.csv")
 planes <- read_csv("data/planes.csv")
 weather <- read_csv("data/weather.csv")
 
-joined_table <- flights %>% left_join(planes, by = "tailnum") 
+flights_planes <- flights %>% left_join(planes, by = "tailnum") 
 
+flights_planes_weather <- flights_planes %>% left_join(weather, by= c("origin", "time_hour"))
+
+joined_table <- flights_planes_weather %>% left_join(airports, c("origin" = "faa"))
 print(joined_table)
 ```
 
