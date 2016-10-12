@@ -1,6 +1,6 @@
 ---
-title: "Assingment NYC Flight Data"
-author: "Your Name Here"
+title: "Assignment NYC Flight Data"
+author: "Filza Mazahir"
 date: "October 5, 2016"
 output: html_document
 ---
@@ -18,44 +18,70 @@ Your job is to create a "rectangular" table useful for modeling from flight data
 Using the `readr` package read the `flights` data.
 
 ```{r}
-
+library(readr)
+flights <- read_csv("data/flights.csv")
 
 ```
 
-## Numeric Variables  
+## 2. Numeric Variables  
 
 Plot a histogram of arrival delays and departure delays 
 
 ```{r}
+hist(flights$arr_delay, 
+     main="Arrival Delays", 
+     xlab="Arrival delay time in minutes", 
+     border="green", 
+     col="blue")
+
+hist(flights$dep_delay, 
+     main="Departure Delays", 
+     xlab="Departure delay time in minutes", 
+     border="blue", 
+     col="green")
+
 
 ```
 
-## Scatterplot
+## 3. Scatterplot
 
 Plot a scatterplot of date vs arrival delay 
 
 ```{r}
+flights$date <- as.Date( paste(flights$month , flights$day , sep = "." )  , format = "%m.%d" )
 
+plot(flights$date, flights$arr_delay,
+     xlab="Date",
+     ylab="Arrival Delay")
 ```
 
 
 
-## Create tables for Categorical Variables
+## 4. Create tables for Categorical Variables
 
 Create a `table` of occurences of origin airports and carrier.
 
 ```{r}
-
+library(plyr)
+occurences <- count(flights, c('origin', 'carrier'))
+print(occurences)
 
 ```
 
 
-## Join Data
+## 5. Join Data
 
 **Read** in the other data sets. Use methods to join the data together to create a single table containing one record per row.  (HINT: see `?data.table` or `?dplyr::join`)
 
 ```{r}
+library(dplyr)
+airports <- read_csv("data/flights.csv")
+planes <- read_csv("data/planes.csv")
+weather <- read_csv("data/weather.csv")
 
+joined_table <- flights %>% left_join(planes, by = "tailnum") 
+
+print(joined_table)
 ```
 
 

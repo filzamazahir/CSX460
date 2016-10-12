@@ -11,4 +11,7 @@ admin
 */*answers*
 assignments/*answers*.Rmd
 
+*.DS_Store
+
+
 
