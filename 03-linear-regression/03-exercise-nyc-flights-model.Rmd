@@ -1,12 +1,17 @@
 ---
 title: "NYCFlights: Arrival Delay Regression Model"
-author: "[Your Name]"
-date: "[Today's Date]"
+author: "Filza Mazahir"
+date: "October 18, 2016"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(readr)
+library(dplyr)
+library(psych)
+
 ```
 
 # NYCFlights Model
@@ -16,8 +21,22 @@ for building a model. Describe/Explain each of the steps and show all work in co
 
 
 ## Step 1: Collect Data 
-
+Data has already been collected and provided to us, so we are reading the data here and creating the rectangular data again from last week which joins all the different sets of data.
 ```{r "Step 1: Collect Data" }
+
+flights <- read_csv("data/flights.csv")
+airports <- read_csv("data/airports.csv")
+planes <- read_csv("data/planes.csv")
+weather <- read_csv("data/weather.csv")
+
+flights_weather_planes_airport <- 
+  flights %>% 
+  left_join(weather, by=c("origin","year","month","day","hour") ) %>%
+  left_join(planes, by='tailnum', suffixes=c('','.pl') ) %>% 
+  left_join(airports, by=c('origin'='faa') ) %>% 
+  left_join(airports, by=c('dest'='faa') ) 
+
+
 
 ```
 
@@ -26,36 +45,52 @@ for building a model. Describe/Explain each of the steps and show all work in co
 
 One of the things not done in the MLwR text is a pairwise comparison between the response and each of the predictors. Make sure to do this; this is often very illustrative of the relationship between that predictor and the response. This can be done with `pairs` or `psych::panel.pairs`
 
-
 ```{r "Step 2: Explore and Prep The Data" }
+print(flights_weather_planes_airport)
 
+print(pairs.panels(flights_weather_planes_airport[c("dewp","wind_dir", "wind_speed", "wind_gust", "dep_delay", "precip", "arr_delay")]))
 ```
+The independent variables with which arrival delay was compared with was departure delay and weather related variables such as dewpoint, wind direction, wind gustiness, and precipitation. The pairs scatterplot shows that there is a very high correlation between departure delay and arrival delay, 0.9 to be exact. This is expected and makes complete sense, if the flight leaves late it will arrive late. The weather correlation seems to be low, and that's quite expected as well because most of the time the weather conditions are checked beforehand and planes just do not depart under bad weather since it is not ideal to have the plane just flying around in the air.
+
 
 ## Step 3:  Train The Model
 
 ```{r "Step 3: Train The Model" }
 
+arr_delay_model <- lm(arr_delay ~ dewp + wind_dir + wind_speed + wind_gust + precip + dep_delay, data = flights_weather_planes_airport)
+
+print(arr_delay_model)
+
 ```
+A linear regression model was created given the independent variables of weather and departure delay. The coefficients show a low coefficient of 1.018 for departure delay, so for every minute delayed in departure, there is a 1.018 minute delay in arrival, which is expected. After that precipitation also seems to have an impact, for every millimetres of percipitation, there is a 28 minute arrival delay. This does seem a bit off because it is a high number, and analyzing the plot of precipitation vs arrival delay in step 2 does show two distinct set of points. It makes sense though, because even though the flight may not be delayed 28 minutes for every ml of precipitation, there may be a significant delay when the precipitation crosses a certain threshold.
+
 
 ## Step 4: Evaluate Performance
 
 Evaluating performance is a crutial step, that has yet to be treated well by the MLwR. Think about some of the tools that you have for evaluating performance.  Choose one and articulate why you have chosen it.
 
 ```{r "Step 4: Evaluate Performance" }
-
+print(summary(arr_delay_model))
 ```
-
+There are a couple of things to notice when evaluating the performance. Based on the residuals, the model under-predicted arrival delay by 187 minutes in atleast one observation, that is an under prediction of over 3 hours! On the other hand though, the majority of predictions were under predicted by 8 minutes or over predicted by 10 minutes, which is not that huge of a number and shows good results. The multiple R squared value is 0.8368, which means that the model explains around 83.68% of the variation in the dependant variables. Though the size of some errors is troubling, the high multiple R squared value does show that this model works pretty well.
 
 ## Step 5: Improve Performance 
 
 Show some steps for improving model performance.
 
 ```{r "Step 5: Improve Performance" }
+flights_weather_planes_airport$dep_delay2 <- flights_weather_planes_airport$dep_delay^2
+
+flights_weather_planes_airport$precip2 <- flights_weather_planes_airport$precip^2
+
+arr_delay_model2 <- lm(arr_delay ~ dewp + wind_dir + wind_speed + wind_gust + wind_gust:wind_speed + precip + precip2 + dep_delay + dep_delay2, data = flights_weather_planes_airport)
+
+print(summary(arr_delay_model2))
 
 ```
-
+Non-linear relationships were added for departure delay and precipitation. Departure delay was chosen because of its high correlation to arrival delay, and precipitation was chosen because of its relationship with arrival delay being in two distinct sets, which could not be captured using linear regression. Additionally, an interaction effect between wind speed and wind gustiness was added as these two are related and can have a combined effect.
 
 # Question:
 
-Is this a good model?  (Write your answer here.)
-
+Is this a good model?  
+Based on the residuals, this new model under predicted by 187.1 minutes atleast once, which compared to 186.7 minutes before, is actually worse off. The percent of errors within the first and third quartile have not changed much either. The multiple R squared value went from 0.8368 to 0.8372, which is merely a 0.04% increase. So even though the multiple R squared value did increase a bit, overall this model is not that much better than the previous linear regression model, and other ways should be utilized to improve the linear regression model.
