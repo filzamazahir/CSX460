@@ -60,7 +60,16 @@ calculate:
 * Recall 
 * Precision
 
-```{r, echo=FALSE}
+```{r}
+#misclassificationrate <- function(arg1, arg2, ... ){
+#mean(y_predicted != y_actual)
+#return(object)
+#}
+prediction <- predict(creditability_model, test_indices)
+print(prediction)
+
+misclassificationrate <- mean(prediction != test_indices$Creditability)
+print(misclassificationrate)
 
 
 ```
