@@ -1,9 +1,18 @@
 ---
 title: "Classification Metrics"
-author: "Christopher Brown"
-date: 
+author: "Filza Mazahir"
+date: "November 8, 2016"
 output: html_document
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(psych)
+```
+
 
 The German Credit Data (data/german_credit); 
 
@@ -15,7 +24,21 @@ The German Credit Data (data/german_credit);
 Show All Work! 
 
 ```{r}
+gc <- read_csv("data/german_credit.csv")
 
+#Sample Indexes
+indices = sample(1:nrow(gc), size=0.2*nrow(gc))
+ 
+# Split data
+test_indices = gc[indices,]
+dim(test_indices)  
+train_indices = gc[-indices,]
+print(train_indices)
+dim(train_indices) 
+
+#Train model
+creditability_model <- lm( Creditability ~ . , train_indices )
+print(creditability_model)
 
 ```
 
